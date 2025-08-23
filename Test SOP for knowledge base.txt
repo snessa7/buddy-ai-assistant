@@ -1,0 +1,22 @@
+### Mock SOP: Order Fulfillment Process for XYZ Logistics
+
+**Purpose:** To standardize order processing, ensuring timely and accurate delivery.
+
+**Scope:** Applies to all warehouse staff handling inbound orders.
+
+**Responsibilities:**
+- Order Clerk: Receives and verifies orders.
+- Picker: Selects items from inventory.
+- Packer: Packages and labels shipments.
+- Shipper: Dispatches via carrier.
+
+**Procedure:**
+1. Receive order via system; confirm details (items, quantity, address).
+2. Verify inventory availability; note shortages.
+3. Pick items using barcode scanner; double-check against order.
+4. Pack securely with protective materials; attach invoice.
+5. Generate shipping label; scan for tracking.
+6. Hand off to carrier; update system status.
+7. Handle exceptions (e.g., damages) by notifying supervisor.
+
+**Review:** Annually or after incidents.
