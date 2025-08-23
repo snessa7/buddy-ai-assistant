@@ -12,6 +12,7 @@ import uuid
 from typing import List, Optional
 import asyncio
 from pathlib import Path
+from datetime import datetime
 
 # Document processing imports
 import PyPDF2
@@ -343,6 +344,84 @@ async def get_models():
             "current_model": DEFAULT_MODEL,
             "error": str(e)
         }
+
+@app.get("/api/weather")
+async def get_weather():
+    """Get weather data for Vancouver, WA"""
+    try:
+        # For demo purposes, return mock weather data in Fahrenheit
+        # In production, you'd integrate with OpenWeatherMap, WeatherAPI, or similar
+        import random
+        from datetime import datetime
+        
+        # Vancouver, WA typical weather patterns (Fahrenheit)
+        weather_conditions = [
+            {"temp": 52, "condition": "partly-cloudy", "icon": "⛅", "description": "Partly Cloudy"},
+            {"temp": 58, "condition": "sunny", "icon": "☀️", "description": "Sunny"},
+            {"temp": 47, "condition": "rainy", "icon": "🌧️", "description": "Light Rain"},
+            {"temp": 63, "condition": "sunny", "icon": "☀️", "description": "Clear Sky"},
+            {"temp": 55, "condition": "cloudy", "icon": "☁️", "description": "Overcast"},
+            {"temp": 42, "condition": "rainy", "icon": "🌧️", "description": "Rainy"},
+            {"temp": 68, "condition": "sunny", "icon": "☀️", "description": "Warm & Sunny"},
+            {"temp": 38, "condition": "cloudy", "icon": "☁️", "description": "Cold & Cloudy"}
+        ]
+        
+        # Randomly select weather condition
+        weather = random.choice(weather_conditions)
+        
+        return {
+            "location": "Vancouver, WA",
+            "temperature": weather["temp"],
+            "temperature_unit": "F",  # Explicitly specify Fahrenheit
+            "condition": weather["condition"],
+            "icon": weather["icon"],
+            "description": weather["description"],
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        return {"error": f"Failed to fetch weather: {str(e)}"}
+
+# Sticky Notes functionality
+sticky_notes = []
+
+@app.get("/api/sticky-notes")
+async def get_sticky_notes():
+    """Get all sticky notes"""
+    return {"notes": sticky_notes}
+
+@app.post("/api/sticky-notes")
+async def create_sticky_note(note: dict):
+    """Create a new sticky note"""
+    new_note = {
+        "id": len(sticky_notes) + 1,
+        "content": note.get("content", ""),
+        "color": note.get("color", "yellow"),
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    sticky_notes.append(new_note)
+    return new_note
+
+@app.put("/api/sticky-notes/{note_id}")
+async def update_sticky_note(note_id: int, note: dict):
+    """Update a sticky note"""
+    for i, existing_note in enumerate(sticky_notes):
+        if existing_note["id"] == note_id:
+            sticky_notes[i]["content"] = note.get("content", existing_note["content"])
+            sticky_notes[i]["color"] = note.get("color", existing_note["color"])
+            sticky_notes[i]["updated_at"] = datetime.now().isoformat()
+            return sticky_notes[i]
+    raise HTTPException(status_code=404, detail="Note not found")
+
+@app.delete("/api/sticky-notes/{note_id}")
+async def delete_sticky_note(note_id: int):
+    """Delete a sticky note"""
+    for i, note in enumerate(sticky_notes):
+        if note["id"] == note_id:
+            deleted_note = sticky_notes.pop(i)
+            return {"message": "Note deleted", "note": deleted_note}
+    raise HTTPException(status_code=404, detail="Note not found")
 
 @app.get("/api/health")
 async def health_check():

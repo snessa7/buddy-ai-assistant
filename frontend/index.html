@@ -17,6 +17,17 @@
                     <span id="status-text">Checking connection...</span>
                 </div>
             </div>
+            <button class="sticky-notes-toggle" id="sticky-notes-toggle">
+                <span class="sticky-notes-icon">📝</span>
+                Sticky Notes
+            </button>
+            <div class="weather-widget" id="weather-widget">
+                <div class="weather-icon" id="weather-icon">🌤️</div>
+                <div class="weather-info">
+                    <div class="weather-temp" id="weather-temp">--°</div>
+                    <div class="weather-location">Vancouver, WA</div>
+                </div>
+            </div>
             <div class="header-right">
                 <button class="settings-toggle" id="settings-toggle">
                     <span class="settings-icon">⚙️</span>
@@ -61,6 +72,51 @@
                             </span>
                         </div>
                         <small class="input-hint">Press Enter to send • Shift+Enter for new line • Ctrl+/ to focus • Ctrl+Shift+C to clear</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sticky Notes Modal -->
+            <div class="sticky-notes-modal" id="sticky-notes-modal">
+                <div class="modal-backdrop" id="sticky-notes-backdrop"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>📝 Sticky Notes</h3>
+                        <button class="close-modal" id="close-sticky-notes">✕</button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <!-- Quick Add Note -->
+                        <div class="quick-add-section">
+                            <div class="quick-add-form">
+                                <textarea 
+                                    id="quick-note-input" 
+                                    placeholder="Type your note here..."
+                                    class="quick-note-input"
+                                    rows="2"
+                                ></textarea>
+                                <div class="quick-add-actions">
+                                    <div class="color-picker">
+                                        <button class="color-btn active" data-color="yellow" style="background: #FFD93D;" title="Yellow"></button>
+                                        <button class="color-btn" data-color="blue" style="background: #6B9AC4;" title="Blue"></button>
+                                        <button class="color-btn" data-color="pink" style="background: #F7CAC9;" title="Pink"></button>
+                                        <button class="color-btn" data-color="green" style="background: #98D8C8;" title="Green"></button>
+                                        <button class="color-btn" data-color="orange" style="background: #F4A261;" title="Orange"></button>
+                                    </div>
+                                    <button id="add-note-btn" class="add-note-btn">Add Note</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Search -->
+                        <div class="search-section">
+                            <input type="text" id="notes-search" placeholder="Search notes..." class="notes-search">
+                        </div>
+                        
+                        <!-- Notes Grid -->
+                        <div class="notes-grid" id="notes-grid">
+                            <!-- Notes will be populated here -->
+                        </div>
                     </div>
                 </div>
             </div>

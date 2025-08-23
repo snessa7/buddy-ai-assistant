@@ -1,162 +1,163 @@
-# AI Assistant for Administrative Work
+# 🚀 Buddy - Monique's AI Assistant
 
-A local AI assistant designed for administrative and logistics work with document knowledge base support.
+A personalized AI assistant built specifically for Monique's administrative and logistics work, featuring a beautiful Apple Messages-style chat interface, sticky notes system, and weather widget.
 
-## Features
+## ✨ Features
 
-- 🤖 **Local AI Chat**: Uses Ollama for private, local AI conversations
-- 📄 **Document Knowledge Base**: Upload PDFs, DOCX, and TXT files for RAG (Retrieval Augmented Generation)
-- ⚙️ **Customizable Instructions**: Set custom system prompts for specific work needs
-- 🔒 **Privacy First**: Everything runs locally, no data sent to external services
-- 🌐 **Browser-Based**: Clean web interface accessible from any browser
+### 🤖 **AI Chat Assistant**
+- **Personalized for Monique**: Buddy is configured specifically for administrative and logistics tasks
+- **Apple Messages Style**: Beautiful, intuitive chat interface with chat bubbles
+- **Knowledge Base Integration**: Upload and reference documents (PDF, DOCX, TXT)
+- **Model Selection**: Choose from available Ollama models
+- **Custom Instructions**: Tailor Buddy's responses to your preferences
 
-## Prerequisites
+### 📝 **Sticky Notes System**
+- **Quick Note Creation**: Type and save notes instantly
+- **Color Coding**: 5 beautiful colors (yellow, blue, pink, green, orange)
+- **Inline Editing**: Click any note to edit directly
+- **Search Functionality**: Find notes quickly with real-time search
+- **No More Lost Notes**: Digital organization for your desk clutter
 
-1. **Python 3.8+** installed on your system
-2. **Ollama** installed and running
-3. **AI Model** (recommended: `gemma3n:e4b` or `phi3:3.8b`)
+### 🌤️ **Weather Widget**
+- **Vancouver, WA Weather**: Real-time weather updates
+- **Beautiful Animations**: Engaging visual effects
+- **Click to Refresh**: Get latest weather data
+- **Temperature in Fahrenheit**: Easy to read
 
-## Quick Start
+### 🔐 **Security & Privacy**
+- **100% Local**: Everything runs on your computer
+- **No Data Sharing**: Your information never leaves your device
+- **Secure**: Local AI processing with Ollama
 
-### 1. Install Ollama (if not already installed)
-```bash
-# macOS
-brew install ollama
+## 🚀 Quick Start
 
-# Start Ollama
-ollama serve
-```
+### Prerequisites
+- Python 3.8+
+- Ollama installed and running
+- At least one AI model downloaded (e.g., `llama3.2:latest`)
 
-### 2. Download AI Model
-```bash
-# Recommended model for work tasks
-ollama pull gemma3n:e4b
+### Installation
 
-# Alternative lightweight model
-ollama pull phi3:3.8b
-```
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd wife-ai-assistant
+   ```
 
-### 3. Start the AI Assistant
-```bash
-# Make startup script executable
-chmod +x start.sh
+2. **Create virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-# Run the assistant
-./start.sh
-```
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### 4. Open in Browser
-Navigate to: `http://localhost:8000`
+4. **Start the application**
+   ```bash
+   python backend/app.py
+   ```
 
-## Usage
+5. **Open in browser**
+   ```
+   http://localhost:8000
+   ```
 
-### Basic Chat
-- Type messages in the chat input
-- Press **Ctrl+Enter** to send
-- Use **Ctrl+/** to focus the chat input
-- Use **Ctrl+Shift+C** to clear chat history
+## 📖 How to Use
 
-### Knowledge Base
-1. **Upload Documents**: Drag & drop or click to browse files
-2. **Supported Formats**: PDF, DOCX, DOC, TXT
-3. **Toggle RAG**: Use the "Use Knowledge Base" switch to enable/disable document search
-4. **Manage Documents**: View uploaded files and delete them as needed
+### **Starting a Chat**
+1. Open the application at `http://localhost:8000`
+2. Type your message in the chat input
+3. Press **Enter** to send, **Shift+Enter** for new lines
+4. Buddy will respond with personalized assistance
 
-### Custom Instructions
-- Edit the "Custom Instructions" textarea to customize AI behavior
-- Instructions are auto-saved locally
-- Default prompt is optimized for administrative work
+### **Creating Sticky Notes**
+1. Click the **"📝 Sticky Notes"** button in the header
+2. Type your note in the textarea
+3. Choose a color from the color picker
+4. Click **"Add Note"** to save
 
-## Project Structure
+### **Managing Sticky Notes**
+- **Edit**: Click any note to edit inline
+- **Delete**: Click the 🗑️ button on any note
+- **Search**: Use the search box to find specific notes
+- **Color Change**: Select different colors when creating/editing
+
+### **Uploading Documents**
+1. Click **"⚙️ Settings"** in the header
+2. Drag and drop files or click to browse
+3. Supported formats: PDF, DOCX, TXT
+4. Buddy can now reference these documents in conversations
+
+### **Changing AI Models**
+1. Open **Settings** (⚙️)
+2. Select your preferred model from the dropdown
+3. Your choice is automatically saved
+
+## 🛠️ Configuration
+
+### **Environment Variables**
+- `OLLAMA_BASE_URL`: Ollama server URL (default: `http://localhost:11434`)
+- `DEFAULT_MODEL`: Default AI model (default: `llama3.2:latest`)
+
+### **Customizing Buddy**
+- **AI Instructions**: Modify how Buddy responds in Settings
+- **Model Selection**: Choose the AI model that works best for you
+- **Knowledge Base**: Upload relevant documents for context
+
+## 🔧 Troubleshooting
+
+### **Backend Won't Start**
+- Check if port 8000 is available: `lsof -i :8000`
+- Kill any existing processes: `pkill -f "python backend/app.py"`
+
+### **Ollama Connection Issues**
+- Ensure Ollama is running: `ollama serve`
+- Check if models are downloaded: `ollama list`
+- Download a model: `ollama pull llama3.2:latest`
+
+### **Sticky Notes Not Working**
+- Check browser console for JavaScript errors
+- Ensure all files are properly loaded
+- Try refreshing the page
+
+## 📁 Project Structure
 
 ```
 wife-ai-assistant/
 ├── backend/
 │   └── app.py              # FastAPI backend server
 ├── frontend/
-│   ├── index.html          # Main web interface
-│   ├── style.css           # Styling
-│   └── script.js           # Frontend logic
+│   ├── index.html          # Main HTML interface
+│   ├── style.css           # Styling and animations
+│   └── script.js           # Frontend functionality
 ├── knowledge_base/
-│   ├── documents/          # Uploaded files
-│   └── vector_db/          # ChromaDB vector storage
-├── requirements.txt        # Python dependencies
-├── start.sh               # Startup script
-└── README.md              # This file
+│   ├── documents/          # Uploaded document storage
+│   └── vector_db/          # Vector database for RAG
+├── venv/                   # Python virtual environment
+├── requirements.txt         # Python dependencies
+└── README.md               # This file
 ```
 
-## Configuration
+## 🌟 Key Features for Monique
 
-### Model Selection
-Edit `backend/app.py` to change the default model:
-```python
-DEFAULT_MODEL = "gemma3n:e4b"  # Change to your preferred model
-```
+- **Simple & Fast**: No complex interfaces to learn
+- **Familiar Design**: Looks like her favorite messaging apps
+- **Quick Notes**: Perfect for phone calls and meetings
+- **Organized**: No more lost sticky notes
+- **Professional**: Clean, beautiful interface
+- **Local**: Everything stays on her computer
 
-### Port Configuration
-The server runs on port 8000 by default. To change:
-```python
-# In backend/app.py, modify the last line:
-uvicorn.run(app, host="0.0.0.0", port=YOUR_PORT)
-```
+## 🤝 Contributing
 
-## Troubleshooting
+This is a personal project for Monique, but suggestions and improvements are welcome!
 
-### "Ollama not running"
-- Start Ollama: `ollama serve`
-- Check if running: `curl http://localhost:11434/api/version`
+## 📄 License
 
-### "Model not available"
-- List available models: `ollama list`
-- Pull the required model: `ollama pull gemma3n:e4b`
+Personal use project - built with ❤️ for Monique
 
-### "Connection error"
-- Ensure the backend server is running
-- Check if port 8000 is available
-- Try accessing http://localhost:8000 directly
+---
 
-### Document Upload Issues
-- Ensure file is PDF, DOCX, DOC, or TXT format
-- Check file isn't corrupted
-- Large files may take time to process
-
-## Advanced Usage
-
-### Multiple Models
-You can test different models by stopping the server and changing `DEFAULT_MODEL` in `backend/app.py`:
-
-- **Fast & Light**: `qwen2.5:0.5b`
-- **Balanced**: `phi3:3.8b`
-- **Best Quality**: `gemma3n:e4b` or `llama3.1:8b`
-
-### Custom System Prompts
-Tailor the AI for specific tasks:
-
-**Email Assistant**:
-```
-You are an email writing assistant. Help compose professional, clear, and concise business emails. Always maintain a professional tone.
-```
-
-**Meeting Notes**:
-```
-You are a meeting notes assistant. Help organize and summarize meeting discussions, action items, and decisions clearly.
-```
-
-### Keyboard Shortcuts
-- **Ctrl+Enter**: Send message
-- **Ctrl+/**: Focus chat input
-- **Ctrl+Shift+C**: Clear chat history
-
-## Security Notes
-
-- All data stays local on your machine
-- No internet connection required after setup
-- Documents are stored locally in `knowledge_base/documents/`
-- Vector embeddings stored locally in `knowledge_base/vector_db/`
-
-## Support
-
-This is a custom-built tool. For issues:
-1. Check the troubleshooting section above
-2. Verify Ollama is running with the correct model
-3. Check console output for error messages
+**🎯 Ready to boost your productivity? Open `http://localhost:8000` and start chatting with Buddy!**

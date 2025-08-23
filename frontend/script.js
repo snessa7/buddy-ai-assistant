@@ -18,6 +18,17 @@ const uploadStatus = document.getElementById('upload-status');
 const documentsList = document.getElementById('documents-list');
 const statusDot = document.getElementById('status-dot');
 const statusText = document.getElementById('status-text');
+const weatherWidget = document.getElementById('weather-widget');
+const weatherIcon = document.getElementById('weather-icon');
+const weatherTemp = document.getElementById('weather-temp');
+const stickyNotesToggle = document.getElementById('sticky-notes-toggle');
+const stickyNotesModal = document.getElementById('sticky-notes-modal');
+const stickyNotesBackdrop = document.getElementById('sticky-notes-backdrop');
+const closeStickyNotes = document.getElementById('close-sticky-notes');
+const addNoteBtn = document.getElementById('add-note-btn');
+const quickNoteInput = document.getElementById('quick-note-input');
+const notesGrid = document.getElementById('notes-grid');
+const notesSearch = document.getElementById('notes-search');
 
 // Sidebar elements
 const settingsToggle = document.getElementById('settings-toggle');
@@ -36,6 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
     loadModels();
     loadDocuments();
     loadConversationHistory();
+    loadWeather();
+    loadStickyNotes();
     setupEventListeners();
     setupAutoResize();
     updateRAGStatus();
@@ -152,12 +165,42 @@ function setupEventListeners() {
         systemPrompt.value = savedPrompt;
     } else {
         // Set default personalized prompt for Monique
-        systemPrompt.value = "You are Buddy, Monique's personal AI assistant for administrative and logistics work. Be friendly, professional, and focus on practical solutions that help Monique efficiently manage her tasks.";
+        systemPrompt.value = "You are Buddy, Monique's personal AI assistant for administrative and logistics work. Be friendly, professional, and focus on practical solutions that help Monique efficiently manage her tasks. You can also help Monique with her sticky notes - she has a digital sticky note system where she can create, edit, search, and organize notes. You can help her find specific notes, suggest organization strategies, and remind her about important notes she might have forgotten.";
     }
 
     // Auto-save model selection
     modelSelector.addEventListener('change', () => {
         localStorage.setItem('ai-assistant-selected-model', modelSelector.value);
+    });
+
+    // Weather widget click to refresh
+    weatherWidget.addEventListener('click', loadWeather);
+    
+    // Sticky notes functionality
+    if (stickyNotesToggle) {
+        stickyNotesToggle.addEventListener('click', openStickyNotesModal);
+    }
+    if (closeStickyNotes) {
+        closeStickyNotes.addEventListener('click', closeStickyNotesModal);
+    }
+    if (stickyNotesBackdrop) {
+        stickyNotesBackdrop.addEventListener('click', closeStickyNotesModal);
+    }
+    if (addNoteBtn) {
+        addNoteBtn.addEventListener('click', addQuickNote);
+    }
+    if (notesSearch) {
+        notesSearch.addEventListener('input', filterNotes);
+    }
+    
+    // Color picker functionality
+    const colorBtns = document.querySelectorAll('.color-btn');
+    colorBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            colorBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedColor = btn.dataset.color;
+        });
     });
 
     // Load saved model selection
@@ -215,6 +258,9 @@ async function sendMessage() {
     const message = chatInput.value.trim();
     if (!message || isLoading) return;
 
+    // Reset stop flag
+    window.stopResponseFlag = false;
+
     // Add user message to chat and history
     addMessageToUI(message, 'user');
     addToHistory(message, 'user');
@@ -250,7 +296,21 @@ async function sendMessage() {
         removeLoading(loadingId);
         
         if (response.ok) {
-            addMessageToUI(data.response, 'assistant', data.sources);
+            // Add AI response to UI
+            const messageElement = addMessageToUI(data.response, 'assistant', data.sources);
+            
+            // Show stop button during response
+            const stopBtn = messageElement.querySelector('.stop-btn');
+            if (stopBtn) {
+                stopBtn.style.display = 'inline-block';
+                
+                // Check if response was stopped
+                if (window.stopResponseFlag) {
+                    stopBtn.style.display = 'none';
+                    return;
+                }
+            }
+            
             addToHistory(data.response, 'assistant', data.sources);
         } else {
             const errorMsg = `Error: ${data.detail || 'Unknown error'}`;
@@ -266,6 +326,7 @@ async function sendMessage() {
         isLoading = false;
         sendButton.disabled = false;
         chatInput.focus();
+        window.stopResponseFlag = false;
     }
 }
 
@@ -278,6 +339,31 @@ function addMessageToUI(content, sender, sources = []) {
     contentDiv.className = 'message-content';
     contentDiv.textContent = content;
 
+    // Add action buttons for AI messages
+    if (sender === 'assistant') {
+        const actionBar = document.createElement('div');
+        actionBar.className = 'message-actions';
+        
+        // Copy button
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'action-btn copy-btn';
+        copyBtn.innerHTML = '📋';
+        copyBtn.title = 'Copy to clipboard';
+        copyBtn.onclick = () => copyToClipboard(content);
+        
+        // Stop button (only show while streaming)
+        const stopBtn = document.createElement('button');
+        stopBtn.className = 'action-btn stop-btn';
+        stopBtn.innerHTML = '⏹️';
+        stopBtn.title = 'Stop response';
+        stopBtn.style.display = 'none';
+        stopBtn.onclick = () => stopResponse();
+        
+        actionBar.appendChild(copyBtn);
+        actionBar.appendChild(stopBtn);
+        messageDiv.appendChild(actionBar);
+    }
+
     messageDiv.appendChild(contentDiv);
 
     // Add sources if available
@@ -289,13 +375,264 @@ function addMessageToUI(content, sender, sources = []) {
     }
 
     // Remove welcome message if it exists
-    const welcomeMessage = chatMessages.querySelector('.welcome-message');
+    const welcomeMessage = chatMessages.querySelector('.message.welcome-message');
     if (welcomeMessage) {
         welcomeMessage.remove();
     }
 
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    return messageDiv;
+}
+
+// Sticky Notes Functions
+let selectedColor = 'yellow';
+let allNotes = [];
+
+async function loadStickyNotes() {
+    try {
+        const response = await fetch(`${API_BASE}/api/sticky-notes`);
+        const data = await response.json();
+        allNotes = data.notes || [];
+        renderStickyNotes(allNotes);
+    } catch (error) {
+        console.error('Failed to load sticky notes:', error);
+        // Show some sample notes for demo
+        allNotes = [
+            { id: 1, content: "Call John about order #1234", color: "yellow" },
+            { id: 2, content: "Meeting with team at 2 PM", color: "blue" },
+            { id: 3, content: "Pick up dry cleaning", color: "pink" },
+            { id: 4, content: "Review SOP documents", color: "green" }
+        ];
+        renderStickyNotes(allNotes);
+    }
+}
+
+function renderStickyNotes(notes) {
+    if (!notesGrid) return;
+    
+    notesGrid.innerHTML = '';
+    
+    if (notes.length === 0) {
+        notesGrid.innerHTML = '<div class="no-notes">No sticky notes yet. Create your first note above! 📝</div>';
+        return;
+    }
+    
+    notes.forEach(note => {
+        const noteElement = createStickyNoteElement(note);
+        notesGrid.appendChild(noteElement);
+    });
+}
+
+function createStickyNoteElement(note) {
+    const noteDiv = document.createElement('div');
+    noteDiv.className = `sticky-note ${note.color}`;
+    noteDiv.dataset.noteId = note.id;
+    
+    noteDiv.innerHTML = `
+        <div class="note-content">${note.content}</div>
+        <div class="note-actions">
+            <button class="action-btn delete-btn" title="Delete note">🗑️</button>
+        </div>
+    `;
+    
+    // Add click to edit functionality
+    noteDiv.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('action-btn')) {
+            editNoteInline(noteDiv, note);
+        }
+    });
+    
+    // Add delete functionality
+    noteDiv.querySelector('.delete-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteNote(note.id);
+    });
+    
+    return noteDiv;
+}
+
+function addQuickNote() {
+    if (!quickNoteInput) return;
+    
+    const content = quickNoteInput.value.trim();
+    if (!content) {
+        showNotification('Please enter some content for your note', 'error');
+        return;
+    }
+    
+    createNote(content, selectedColor);
+    quickNoteInput.value = '';
+}
+
+async function createNote(content, color) {
+    try {
+        const response = await fetch(`${API_BASE}/api/sticky-notes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content, color })
+        });
+        
+        if (response.ok) {
+            const newNote = await response.json();
+            showNotification('Note created! 📝', 'success');
+            loadStickyNotes(); // Reload to show new note
+        } else {
+            showNotification('Failed to create note', 'error');
+        }
+    } catch (error) {
+        console.error('Error creating note:', error);
+        showNotification('Failed to create note', 'error');
+    }
+}
+
+function editNoteInline(noteElement, note) {
+    const contentDiv = noteElement.querySelector('.note-content');
+    const originalContent = contentDiv.textContent;
+    
+    // Create textarea for editing
+    const textarea = document.createElement('textarea');
+    textarea.value = originalContent;
+    textarea.className = 'inline-edit-textarea';
+    textarea.style.cssText = `
+        width: 100%;
+        border: none;
+        background: transparent;
+        resize: none;
+        font-family: inherit;
+        font-size: inherit;
+        color: inherit;
+        line-height: 1.4;
+        padding: 0;
+        margin: 0;
+        outline: none;
+    `;
+    
+    // Replace content with textarea
+    contentDiv.innerHTML = '';
+    contentDiv.appendChild(textarea);
+    textarea.focus();
+    
+    // Auto-resize textarea
+    textarea.style.height = textarea.scrollHeight + 'px';
+    
+    // Save on blur or enter
+    const saveEdit = async () => {
+        const newContent = textarea.value.trim();
+        if (newContent && newContent !== originalContent) {
+            await updateNote(note.id, newContent, note.color);
+        } else {
+            contentDiv.textContent = originalContent;
+        }
+    };
+    
+    textarea.addEventListener('blur', saveEdit);
+    textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            saveEdit();
+        }
+        if (e.key === 'Escape') {
+            contentDiv.textContent = originalContent;
+        }
+    });
+}
+
+async function updateNote(noteId, content, color) {
+    try {
+        const response = await fetch(`${API_BASE}/api/sticky-notes/${noteId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content, color })
+        });
+        
+        if (response.ok) {
+            showNotification('Note updated! ✏️', 'success');
+            loadStickyNotes();
+        } else {
+            showNotification('Failed to update note', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating note:', error);
+        showNotification('Failed to update note', 'error');
+    }
+}
+
+async function deleteNote(noteId) {
+    if (!confirm('Delete this note?')) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/sticky-notes/${noteId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            showNotification('Note deleted! 🗑️', 'success');
+            loadStickyNotes();
+        } else {
+            showNotification('Failed to delete note', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting note:', error);
+        showNotification('Failed to delete note', 'error');
+    }
+}
+
+function filterNotes() {
+    if (!notesSearch) return;
+    
+    const searchTerm = notesSearch.value.toLowerCase();
+    const filteredNotes = allNotes.filter(note => 
+        note.content.toLowerCase().includes(searchTerm)
+    );
+    renderStickyNotes(filteredNotes);
+}
+
+function openStickyNotesModal() {
+    if (stickyNotesModal) {
+        stickyNotesModal.classList.add('show');
+        loadStickyNotes(); // Load notes when opening
+        
+        // Close settings sidebar if open
+        if (settingsSidebar && settingsSidebar.classList.contains('open')) {
+            closeSidebarPanel();
+        }
+    }
+}
+
+function closeStickyNotesModal() {
+    if (stickyNotesModal) {
+        stickyNotesModal.classList.remove('show');
+    }
+}
+
+// Copy text to clipboard
+async function copyToClipboard(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        showNotification('Copied to clipboard! 📋', 'success');
+    } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('Copied to clipboard! 📋', 'success');
+    }
+}
+
+// Stop AI response
+function stopResponse() {
+    // Set a flag to stop the response
+    window.stopResponseFlag = true;
+    showNotification('Response stopped ⏹️', 'info');
+    
+    // Hide all stop buttons
+    const stopBtns = document.querySelectorAll('.stop-btn');
+    stopBtns.forEach(btn => btn.style.display = 'none');
 }
 
 // Show loading indicator
@@ -549,6 +886,52 @@ async function loadModels() {
         modelSelector.innerHTML = '<option value="">Error loading models</option>';
     }
 }
+
+// Load weather data for Vancouver, WA
+async function loadWeather() {
+    try {
+        weatherWidget.classList.add('loading');
+        
+        // Fetch weather from our backend API
+        const response = await fetch(`${API_BASE}/api/weather`);
+        const weatherData = await response.json();
+        
+        if (weatherData.error) {
+            throw new Error(weatherData.error);
+        }
+        
+        updateWeatherDisplay(weatherData);
+        
+    } catch (error) {
+        console.error('Failed to load weather:', error);
+        showWeatherError();
+    }
+}
+
+// Update weather display
+function updateWeatherDisplay(weather) {
+    weatherWidget.classList.remove('loading');
+    weatherWidget.classList.remove('error');
+    
+    weatherTemp.textContent = `${weather.temperature}°`;
+    weatherIcon.textContent = weather.icon;
+    
+    // Add success animation
+    weatherWidget.style.transform = 'scale(1.05)';
+    setTimeout(() => {
+        weatherWidget.style.transform = 'scale(1)';
+    }, 200);
+}
+
+// Show weather error state
+function showWeatherError() {
+    weatherWidget.classList.remove('loading');
+    weatherWidget.classList.add('error');
+    weatherTemp.textContent = '--°';
+    weatherIcon.textContent = '❌';
+}
+
+
 
 // Load documents list
 async function loadDocuments() {
