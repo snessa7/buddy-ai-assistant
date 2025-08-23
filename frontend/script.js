@@ -1,5 +1,5 @@
 // Global variables
-const API_BASE = '';
+let API_BASE = '';
 let isLoading = false;
 let conversationHistory = [];
 
@@ -42,7 +42,18 @@ const exportButton = document.getElementById('export-conversation');
 const clearButton = document.getElementById('clear-conversation');
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Load configuration and set API base
+    try {
+        const config = await import('./config.js');
+        API_BASE = config.default.getApiUrl();
+        console.log(`Using API: ${config.default.getDescription()} - ${API_BASE}`);
+    } catch (e) {
+        // Fallback to local if config fails to load
+        API_BASE = 'http://localhost:8000';
+        console.log('Config load failed, using local API:', API_BASE);
+    }
+    
     checkHealth();
     loadModels();
     loadDocuments();

@@ -31,12 +31,14 @@ A personalized AI assistant built specifically for Monique's administrative and 
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### **Local Development**
+
+#### Prerequisites
 - Python 3.8+
 - Ollama installed and running
 - At least one AI model downloaded (e.g., `llama3.2:latest`)
 
-### Installation
+#### Installation
 
 1. **Clone the repository**
    ```bash
@@ -64,6 +66,17 @@ A personalized AI assistant built specifically for Monique's administrative and 
    ```
    http://localhost:8000
    ```
+
+### **🌐 Remote Deployment (Recommended)**
+
+Want Monique to access Buddy from anywhere? Deploy to the cloud!
+
+**Quick Deploy:**
+1. **Backend**: Deploy to [Railway](https://railway.app) (free tier)
+2. **Frontend**: Automatically deploys to GitHub Pages
+3. **Access**: `https://yourusername.github.io/repository-name`
+
+**Full Instructions**: See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed steps!
 
 ## 📖 How to Use
 

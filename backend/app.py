@@ -67,8 +67,8 @@ class DocumentInfo(BaseModel):
     upload_date: str
 
 # Ollama configuration
-OLLAMA_URL = "http://localhost:11434"
-DEFAULT_MODEL = "phi3:3.8b"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "phi3:3.8b")
 def extract_text_from_file(file_path: str, filename: str) -> str:
     """Extract text from various file formats"""
     file_extension = filename.lower().split('.')[-1]
@@ -451,4 +451,5 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
